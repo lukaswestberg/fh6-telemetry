@@ -1,13 +1,8 @@
 import socket
-import json
 import struct
-import os
 
-# Define port
-PORT = 7809
-BIND_ADDR = ''  # Bind to all interfaces
-
-# Define the packet size (324 bytes)
+DEFAULT_PORT = 7809
+DEFAULT_BIND_ADDR = ""
 PACKET_SIZE = 324
 
 PACKET_FORMAT = (
@@ -105,23 +100,16 @@ PACKET_FIELDS = (
     "NormalizedAIBrakeDifference",
 )
 
+_STRUCT = struct.Struct(PACKET_FORMAT)
+
+
 def parse_packet(data):
-    values = struct.unpack_from(PACKET_FORMAT, data, 0)
-    return dict(zip(PACKET_FIELDS, values))
+    return dict(zip(PACKET_FIELDS, _STRUCT.unpack_from(data)))
 
-def main():
-    # Start UDP server on port 7809 (bind to all interfaces)
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_socket.bind((BIND_ADDR, PORT))
-    print("UDP server is listening on port 7809...")
-    
-    clear_cmd = "cls" if os.name == "nt" else "clear"
-    while True:
-        data, addr = server_socket.recvfrom(PACKET_SIZE)
-        parsed_data = parse_packet(data)
-        os.system(clear_cmd)
-        print(f"Telemetry from {addr[0]}:{addr[1]}")
-        print(json.dumps(parsed_data, indent=4))
 
-if __name__ == "__main__":
-    main()
+def listen(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.bind((bind_addr, port))
+        while True:
+            data, _ = sock.recvfrom(PACKET_SIZE)
+            yield parse_packet(data)
