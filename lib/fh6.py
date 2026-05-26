@@ -107,9 +107,14 @@ def parse_packet(data):
     return dict(zip(PACKET_FIELDS, _STRUCT.unpack_from(data)))
 
 
-def listen(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
+def listen_raw(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind((bind_addr, port))
         while True:
             data, _ = sock.recvfrom(PACKET_SIZE)
-            yield parse_packet(data)
+            yield data
+
+
+def listen(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
+    for data in listen_raw(port, bind_addr):
+        yield parse_packet(data)
