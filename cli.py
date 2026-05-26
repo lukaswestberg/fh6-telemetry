@@ -9,6 +9,7 @@ from lib.recording import EXTENSION, Recorder
 
 DEFAULT_DIR = Path("recordings")
 DEFAULT_RATE_HZ = 60.0
+DEFAULT_NAME = "recording"
 
 
 def parse_args():
@@ -18,7 +19,12 @@ def parse_args():
     p.add_argument(
         "-o", "--output",
         type=Path,
-        help=f"Output file path. Defaults to recordings/recording-<timestamp>{EXTENSION}",
+        help=f"Output file path. Overrides --name. Defaults to recordings/<name>-<timestamp>{EXTENSION}",
+    )
+    p.add_argument(
+        "-n", "--name",
+        default=DEFAULT_NAME,
+        help="Name prefix for the recording file (default: %(default)s).",
     )
     p.add_argument(
         "-r", "--rate",
@@ -29,15 +35,15 @@ def parse_args():
     return p.parse_args()
 
 
-def default_output_path():
+def default_output_path(name):
     DEFAULT_DIR.mkdir(exist_ok=True)
     stamp = dt.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    return DEFAULT_DIR / f"recording-{stamp}{EXTENSION}"
+    return DEFAULT_DIR / f"{name}-{stamp}{EXTENSION}"
 
 
 def main():
     args = parse_args()
-    path = args.output or default_output_path()
+    path = args.output or default_output_path(args.name)
 
     min_interval = 1.0 / args.rate if args.rate > 0 else 0.0
     last_write = 0.0
