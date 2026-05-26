@@ -1,9 +1,11 @@
 import socket
 import struct
+import time
 
 DEFAULT_PORT = 7809
 DEFAULT_BIND_ADDR = ""
 PACKET_SIZE = 324
+TELE_TIMESTAMP_FIELD = "teleTimestampMs"
 
 PACKET_FORMAT = (
     "<"      # little-endian, no padding
@@ -100,6 +102,8 @@ PACKET_FIELDS = (
     "NormalizedAIBrakeDifference",
 )
 
+TELEMETRY_FIELDS = (TELE_TIMESTAMP_FIELD,) + PACKET_FIELDS
+
 _STRUCT = struct.Struct(PACKET_FORMAT)
 
 
@@ -108,13 +112,19 @@ def parse_packet(data):
 
 
 def listen_raw(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
+    """Yield (teleTimestampMs, raw_packet) tuples. The timestamp is
+    milliseconds since this generator started consuming packets."""
+    start = time.monotonic()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind((bind_addr, port))
         while True:
             data, _ = sock.recvfrom(PACKET_SIZE)
-            yield data
+            tele_ms = int((time.monotonic() - start) * 1000)
+            yield tele_ms, data
 
 
 def listen(port=DEFAULT_PORT, bind_addr=DEFAULT_BIND_ADDR):
-    for data in listen_raw(port, bind_addr):
-        yield parse_packet(data)
+    for tele_ms, data in listen_raw(port, bind_addr):
+        packet = parse_packet(data)
+        packet[TELE_TIMESTAMP_FIELD] = tele_ms
+        yield packet

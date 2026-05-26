@@ -49,12 +49,12 @@ def main():
     rec = Recorder(path)
     try:
         with rec:
-            for raw in listen_raw():
+            for tele_ms, raw in listen_raw():
                 now = time.monotonic()
                 if now - last_write < min_interval:
                     continue
                 last_write = now
-                rec.write(raw)
+                rec.write(tele_ms, raw)
                 print(f"\rPackets recorded: {rec.count}", end="", flush=True)
     except KeyboardInterrupt:
         pass

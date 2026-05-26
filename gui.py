@@ -2,7 +2,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-from lib.fh6 import PACKET_FIELDS, listen
+from lib.fh6 import TELEMETRY_FIELDS, listen
 
 
 COLUMNS = 2
@@ -33,8 +33,8 @@ def main():
     frame.pack(fill="both", expand=True)
 
     value_vars = {}
-    per_col = (len(PACKET_FIELDS) + COLUMNS - 1) // COLUMNS
-    for i, name in enumerate(PACKET_FIELDS):
+    per_col = (len(TELEMETRY_FIELDS) + COLUMNS - 1) // COLUMNS
+    for i, name in enumerate(TELEMETRY_FIELDS):
         col = i // per_col
         row = i % per_col
         ttk.Label(frame, text=name, anchor="w").grid(
