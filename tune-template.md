@@ -1,3 +1,8 @@
+## General
+Power: 
+Weight: 
+Front Weight Distribution: 
+
 ## Tire Pressure:
 Front: 
 Rear: 
