@@ -3,8 +3,9 @@ import datetime as dt
 import time
 from pathlib import Path
 
+from lib.calculations import summarize
 from lib.fh6 import listen_raw
-from lib.recording import EXTENSION, Recorder
+from lib.recording import EXTENSION, Recorder, read_packets
 
 
 DEFAULT_DIR = Path("recordings")
@@ -65,6 +66,13 @@ def main():
     except KeyboardInterrupt:
         pass
     print(f"\nSaved {rec.count} packets to {path}")
+
+    if rec.count > 0:
+        stats = summarize(read_packets(path))
+        if stats["peak_power_rpm"] is not None:
+            print(f"Peak power: {stats['peak_power_hp']:.0f} HP @ {stats['peak_power_rpm']:.0f} RPM")
+        if stats["redline_rpm"] is not None:
+            print(f"Redline:    {stats['redline_rpm']:.0f} RPM")
 
 
 if __name__ == "__main__":
